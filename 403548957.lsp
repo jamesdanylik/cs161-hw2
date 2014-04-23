@@ -42,6 +42,7 @@
     (clear-globals)
     (load "hw-2-skeleton.lsp") ; Replace with the name of this file
     ; Feel free to load additional files for testing etc here
+    (load "hw-2-units.lsp")
 )
 
 ; Resets the global variables used in the assignment.
@@ -56,6 +57,44 @@
 
 ; ****** END GIVEN UTILITY FUNCTIONS ******
 
+; ****** BEGIN MY UTILITY FUNCTIONS ******
+; lex-has-phrase takes a copy of the current lex to recurse on and a phrase to
+; search for. It returns t if the phrase appears in the current lex, and nil
+; otherwise 
+(defun lex-has-phrase (lex phrase)
+    (cond
+        ; if there are no phrase in the lex, it can't have phrase
+        ((eq (length lex) 0) NIL)
+        ; first item of the first item in the first phrase's phrase name
+        ((equal (car (car lex)) phrase) t)
+        ; not empty or the phrase in question, recurse
+        (t (lex-has-phrase (cdr lex) phrase))
+    )
+)
+
+(defun lex-remove-phrase (lex phrase)
+    (cond
+        ; empty lex already has already phrases removed
+        ((eq (length lex) 0) NIL)
+        ; if the front of the lex is the one we want, return the rest
+        ((equal (car (car lex)) phrase) (cdr lex))
+        ; else return this case, plus whatever else passes this function
+        (t (cons (car lex) (lex-remove-phrase (cdr lex) phrase)))
+    )
+)
+
+(defun lex-replace-phrase (phrase frame demons)
+    (setq LEXMEM (lex-remove-phrase LEXMEM phrase))
+    (lex-add-phrase phrase frame demons)
+)
+
+(defun lex-add-phrase (phrase frame demons)
+    (let ((oldlex LEXMEM))
+        (setq LEXMEM (cons (list phrase frame demons) oldlex))
+    )
+)
+
+; ****** END MY UTILITY FUNCTIONS ******
 
 ; ****** BEGIN PROBLEM SKELETONS ******
 
@@ -186,7 +225,10 @@
 ; SIDE-EFFECT: Updates global LEXMEM by appending the lexicon entry defined  
 ;              by the input arguments.
 (defun ADD-LEX (phrase frame demons)
-    'UNIMPLEMENTED
+    (cond
+        ((lex-has-phrase LEXMEM phrase) (lex-replace-phrase phrase frame demons))
+        (t (lex-add-phrase phrase frame demons))
+    )
 )
 
 ; -----------------------------------------------------------------------------

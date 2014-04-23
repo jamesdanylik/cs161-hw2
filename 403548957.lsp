@@ -345,7 +345,7 @@
 ; OUTPUT: List of atoms in wkm that do not appear in USED
 
 (defun TOP-CON (wkm used)
-    'UNIMPLEMENTED
+    (set-difference wkm used)
 )
 
 ; -----------------------------------------------------------------------------

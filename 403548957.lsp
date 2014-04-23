@@ -66,7 +66,7 @@
         ; if there are no phrase in the lex, it can't have phrase
         ((eq (length lex) 0) NIL)
         ; first item of the first item in the first phrase's phrase name
-        ((equal (car (car lex)) phrase) t)
+        ((equal (caar lex) phrase) t)
         ; not empty or the phrase in question, recurse
         (t (lex-has-phrase (cdr lex) phrase))
     )
@@ -77,20 +77,58 @@
         ; empty lex already has already phrases removed
         ((eq (length lex) 0) NIL)
         ; if the front of the lex is the one we want, return the rest
-        ((equal (car (car lex)) phrase) (cdr lex))
+        ((equal (caar lex) phrase) (cdr lex))
         ; else return this case, plus whatever else passes this function
         (t (cons (car lex) (lex-remove-phrase (cdr lex) phrase)))
     )
 )
 
 (defun lex-replace-phrase (phrase frame demons)
+    ; remove current phrase from LEXMEM
     (setq LEXMEM (lex-remove-phrase LEXMEM phrase))
+    ; add the new phrase as usual
     (lex-add-phrase phrase frame demons)
 )
 
 (defun lex-add-phrase (phrase frame demons)
+    ; save the value of lexmem, in case of weird stuff
     (let ((oldlex LEXMEM))
+        ; add the new phrase list onto LEXMEM
         (setq LEXMEM (cons (list phrase frame demons) oldlex))
+    )
+)
+
+(defun lex-get-phrase (phrase lexic)
+    (cond
+        ((eq (length lexic) 0) NIL)
+        ((equal (caar lexic) phrase) (car lexic))
+        (t (lex-get-phrase phrase (cdr lexic)))
+    )
+)
+
+(defun ph-lcs (wrdlst phrase result)
+    (cond 
+        ((eq (length phrase) 0) (reverse result))
+        ((equal (car wrdlst) (car phrase)) (lcs (cdr wrdlst) (cdr phrase) (cons (car wrdlst) result)))
+        (t (lcs (cdr wrdlst) (cdr phrase) result))
+    )
+)
+
+(defun ph-greatest-match (wrdlst lexic match)
+    (let ((this-match (ph-lcs wrdlst (caar lexic) NIL)))
+        (cond
+            ((eq (length lexic) 0) match)
+            ((>  (length this-match) (length match)) (ph-greatest-match wrdlst (cdr lexic) this-match))
+            (t (ph-greatest-match wrdlst (cdr lexic) match))
+        )
+    )
+)
+
+(defun ph-rest (wrdlst match rest)
+    (cond
+        ((eq (length match) 0) (append wrdlst rest))
+        ((equal (car wrdlst) (car match)) (ph-rest (cdr wrdlst) (cdr match) rest))
+        (t 'BADMATCH)
     )
 )
 
@@ -113,7 +151,15 @@
 ; OUTPUT: List - (phrase rest) as described above
 
 (defun NEXT-PH (WRDLST LEXIC)
-    'UNIMPLEMENTED
+    (let ((longest-phrase (ph-greatest-match WRDLST LEXIC NIL)))
+        (let ((phrase-clause (lex-get-phrase longest-phrase LEXMEM))
+        (rest-wrdlst (ph-rest WRDLST longest-phrase NIL)))
+            (if (equal longest-phrase NIL)
+                (append (list (car WRDLST) (list 'UNKNOWN 'WORD (list (car WRDLST)) '())) (cdr wrdlst)) 
+                (append (list phrase-clause) rest-wrdlst)
+            )
+        )
+    )
 )
 
 ; -----------------------------------------------------------------------------

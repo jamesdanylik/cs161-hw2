@@ -461,15 +461,14 @@
 ;        lexic (list) - a conceptual lexicon (see problem 1)
 
 (defun C-ANALYZE (sent lexic)
-    (cond
+    (cond 
         ((eq sent NIL) (c-make-ungapped-atoms (TOP-CON WKMEM USEDMEM) NIL))
-        (t (progn 
-            (let ((next-ph-result (NEXT-PH sent lexic)))
-                (cond
-                    ((eq next-ph-result))
-                )
-            )
-        ))
+        (t (progn (let ((next-ph-result (NEXT-PH sent lexic)))
+            (INSTAN-CON (second (first next-ph-result)) WKMEM)
+            (SPAWN (third (first next-ph-result)) (car (last WKMEM)))
+            (POLL-DEMS DEMEM)
+            (C-ANALYZE (cdr next-ph-result) lexic)
+        )))
     )
 )
 

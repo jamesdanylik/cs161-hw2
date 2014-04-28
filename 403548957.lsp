@@ -132,6 +132,13 @@
     )
 )
 
+(defun sf-unique-gaps (sfpairs done)
+    (cond
+        ((eq (length sfpairs) 0) (reverse done))
+        (t (sf-unique-gaps (nthcdr 2 sfpairs) (append (cons (UNIQUE-GAPS (car (cdr sfpairs))) (list (car sfpairs))) done)))
+    )
+)
+
 ; ****** END MY UTILITY FUNCTIONS ******
 
 ; ****** BEGIN PROBLEM SKELETONS ******
@@ -208,7 +215,13 @@
 ; OUTPUT: frame instance (all gaps unique), or unique gap
 
 (defun UNIQUE-GAPS (frame)
-    'UNIMPLEMENTED
+    (cond
+        ; if frame is an atom, it's a gap so bind it
+        ((atom frame) (NEWATM frame))
+        ; if the first slot isn't a gap, ungap the sfpairs
+        (t (cons (car frame) (sf-unique-gaps (cdr frame) NIL)))
+
+    )
 )
 
 ; -----------------------------------------------------------------------------

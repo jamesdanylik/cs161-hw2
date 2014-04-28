@@ -146,16 +146,31 @@
     )
 )
 
-(defun srch-int (atmlst myatm dir pred)
-    ;prepare list cleverly to get around most problems
-)
-
-(defun srch-order (atmlst myatm done)
-    (cond
-        ((equal (cat atmlst) myatm) (reverse (append atmlst) done))
-        (t (srch-order (append (cdr atmlst) (list (car atmlst))) myatm done))  
+(defun srch-int (srchlst pred)
+    (cond 
+        ((eq (length srchlst) 0) NIL)
+        ((equal (first (symbol-value (car srchlst))) pred) (car srchlst))
+        (t (srch-int (cdr srchlst) pred))
     )
 )
+
+(defun srch-dir-sort (atmlst myatm dir)
+    ;prepare search list cleverly to get around most problems
+    (cond 
+        ((equal dir 'AFT) (srch-sort atmlst myatm NIL))
+        ((equal dir 'IM-AFT) (list (car (srch-sort atmlst myatm NIL))))
+        ((equal dir 'BEF) (srch-sort (reverse atmlst) myatm NIL))
+        ((equal dir 'IM-BEF) (list (car (srch-sort (reverse atmlst) myatm NIL))))
+    )
+)
+
+(defun srch-sort (atmlst myatm done)
+    (cond
+        ((equal (car atmlst) myatm) (cdr (append atmlst done)))
+        (t (srch-sort (cdr atmlst) myatm done))  
+    )
+)
+
 
 ; ****** END MY UTILITY FUNCTIONS ******
 
@@ -261,7 +276,9 @@
 ; OUTPUT: frame-reference atom if successful, NIL otherwise
 
 (defun SRCH (atmlst myatm dir pred)
-    'UNIMPLEMENTED
+    (let ((srch-lst (srch-dir-sort atmlst myatm dir)))
+        (srch-int srch-lst pred)
+    )
 )
 
 ; -----------------------------------------------------------------------------

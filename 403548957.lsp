@@ -112,8 +112,8 @@
 (defun ph-lcs (wrdlst phrase result)
     (cond 
         ((eq (length phrase) 0) (reverse result))
-        ((equal (car wrdlst) (car phrase)) (lcs (cdr wrdlst) (cdr phrase) (cons (car wrdlst) result)))
-        (t (lcs (cdr wrdlst) (cdr phrase) result))
+        ((equal (car wrdlst) (car phrase)) (ph-lcs (cdr wrdlst) (cdr phrase) (cons (car wrdlst) result)))
+        (t (ph-lcs (cdr wrdlst) (cdr phrase) result))
     )
 )
 
@@ -174,8 +174,36 @@
     )
 )
 
+(defun pd-int (demlst proclst)
+    (cond 
+        ((eq (length demlst) 0) proclst)
+        (t (progn
+                (let ((dm-result (apply (caar demlst) (cdr (car demlst))) ))
+                    (cond 
+                        ((equal dm-result NIL) (pd-int (cdr demlst) (cons (car demlst) proclst)))
+                        ((equal dm-result '(DIE)) (pd-int (append (cdr demlst) proclst) NIL))
+                        (t 'WEIRDSTUFF)
+                    )
+                )
+            )
+        )
+    )
+)
 
+(defun c-make-ungapped-atoms (atoms done)
+    (cond
+        ((eq (length atoms) 0) done)
+        (t (c-make-ungapped-atoms (cdr atoms) (cons (UNGAP (car atoms)) done)))
+    )
+)
 
+(defun c-remove-front (oldsent phrase)
+    (cond
+        ((eq (length phrase) 0) oldsent)
+        ((equal (car oldsent) (car phrase)) (c-remove-front (cdr oldsent) (cdr phrase)))
+        (t 'TRIED-BAD-SENT-DELETE)
+    )
+)
 
 ; ****** END MY UTILITY FUNCTIONS ******
 
@@ -197,7 +225,7 @@
 
 (defun NEXT-PH (WRDLST LEXIC)
     (let ((longest-phrase (ph-greatest-match WRDLST LEXIC NIL)))
-        (let ((phrase-clause (lex-get-phrase longest-phrase LEXMEM))
+        (let ((phrase-clause (lex-get-phrase longest-phrase LEXIC))
         (rest-wrdlst (ph-rest WRDLST longest-phrase NIL)))
             (if (equal longest-phrase NIL)
                 (append (list (car WRDLST) (list 'UNKNOWN 'WORD (list (car WRDLST)) '())) (cdr wrdlst)) 
@@ -346,10 +374,11 @@
 ; SIDE-EFFECT: Adds generated CON atom to the end of the global list WKMEM
 
 (defun INSTAN-CON (frame wkm)
+    (if (equal frame NIL) 'CALLED-ON-N)
     (let ((ungapped-frame (UNIQUE-GAPS frame))
         (new-con-atm (NEWATM 'CON)))
         (set new-con-atm ungapped-frame)
-        (setf wkm (cons new-con-atm wkm))
+        (setf wkm (reverse (cons new-con-atm (reverse wkm))))
         (setf WKMEM wkm)
         wkm    
     )
@@ -394,8 +423,11 @@
 ;        wkm (list): list of CON-atoms (which evaluate to frames)
 ; OUTPUT: list of demons still remaining after quiescence is reached
 
-(defun POLL-DEMS (demlist wkm)
-    'UNIMPLEMENTED
+(defun POLL-DEMS (demlist)
+    (let ((new-demem (pd-int demlist NIL)))
+        (setf DEMEM new-demem)
+        DEMEM
+    )
 )
 
 ; -----------------------------------------------------------------------------
@@ -429,8 +461,19 @@
 ;        lexic (list) - a conceptual lexicon (see problem 1)
 
 (defun C-ANALYZE (sent lexic)
-    'UNIMPLEMENTED
+    (if (equal sent NIL) (return-from C-ANALYZE (c-make-ungapped-atoms (TOP-CON WKMEM USEDMEM) ())))
+    (let ((next-ph-result (next-ph sent lexic)))
+        (if (equal (second (car next-ph-result)) NIL) 'EXTRACON)
+        (let ((new-con (INSTAN-CON (second (car next-ph-result)) WKMEM)))
+            (let ((new-demons (SPAWN (third (car next-ph-result)) (last WKMEM))))
+                (POLL-DEMS DEMEM)
+                (C-ANALYZE (cdr next-ph-result) lexic)
+            )
+        )
+    )
+    (POLL-DEMS DEMEM)
 )
+
 
 ; -----------------------------------------------------------------------------
 
@@ -473,7 +516,7 @@
 
 (defun DM-EXP (mycon pred dir myslot)
     (let ((srch-result (srch WKMEM mycon dir pred)))
-        (if (eq srch-result NIL)
+        (if (equal srch-result NIL)
             NIL
             (progn 
                 (BIND (FILLER myslot (symbol-value mycon)) srch-result)

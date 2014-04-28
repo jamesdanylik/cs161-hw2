@@ -228,7 +228,7 @@
         (let ((phrase-clause (lex-get-phrase longest-phrase LEXIC))
         (rest-wrdlst (ph-rest WRDLST longest-phrase NIL)))
             (if (equal longest-phrase NIL)
-                (append (list (car WRDLST) (list 'UNKNOWN 'WORD (list (car WRDLST)) '())) (cdr wrdlst)) 
+                (append (list (list (list(car WRDLST)) (list 'UNKNOWN 'WORD (list (car WRDLST))) '())) (cdr wrdlst)) 
                 (append (list phrase-clause) rest-wrdlst)
             )
         )
@@ -461,17 +461,16 @@
 ;        lexic (list) - a conceptual lexicon (see problem 1)
 
 (defun C-ANALYZE (sent lexic)
-    (if (equal sent NIL) (return-from C-ANALYZE (c-make-ungapped-atoms (TOP-CON WKMEM USEDMEM) ())))
-    (let ((next-ph-result (next-ph sent lexic)))
-        (if (equal (second (car next-ph-result)) NIL) 'EXTRACON)
-        (let ((new-con (INSTAN-CON (second (car next-ph-result)) WKMEM)))
-            (let ((new-demons (SPAWN (third (car next-ph-result)) (last WKMEM))))
-                (POLL-DEMS DEMEM)
-                (C-ANALYZE (cdr next-ph-result) lexic)
+    (cond
+        ((eq sent NIL) (c-make-ungapped-atoms (TOP-CON WKMEM USEDMEM) NIL))
+        (t (progn 
+            (let ((next-ph-result (NEXT-PH sent lexic)))
+                (cond
+                    ((eq next-ph-result))
+                )
             )
-        )
+        ))
     )
-    (POLL-DEMS DEMEM)
 )
 
 

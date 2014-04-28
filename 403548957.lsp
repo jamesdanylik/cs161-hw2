@@ -58,6 +58,7 @@
 ; ****** END GIVEN UTILITY FUNCTIONS ******
 
 ; ****** BEGIN MY UTILITY FUNCTIONS ******
+
 ; lex-has-phrase takes a copy of the current lex to recurse on and a phrase to
 ; search for. It returns t if the phrase appears in the current lex, and nil
 ; otherwise 
@@ -72,6 +73,8 @@
     )
 )
 
+; lex-remove phrase takes a copy of the current lex, and phrase to remove
+; it does so by reordering the lex 
 (defun lex-remove-phrase (lex phrase)
     (cond
         ; empty lex already has already phrases removed
@@ -170,6 +173,8 @@
         (t (srch-sort (cdr atmlst) myatm done))  
     )
 )
+
+
 
 
 ; ****** END MY UTILITY FUNCTIONS ******
@@ -467,7 +472,15 @@
 ; OUTPUT: (DIE) if successfully executed and bound, nil otherwise
 
 (defun DM-EXP (mycon pred dir myslot)
-    'UNIMPLEMENTED
+    (let ((srch-result (srch WKMEM mycon dir pred)))
+        (if (eq srch-result NIL)
+            NIL
+            (progn 
+                (BIND (FILLER myslot (symbol-value mycon)) srch-result)
+                '(DIE)
+            )
+        )
+    )
 )
 
 ; ****** END SECTION 3 ******

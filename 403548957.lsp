@@ -304,7 +304,13 @@
 ; SIDE-EFFECT: Adds generated CON atom to the end of the global list WKMEM
 
 (defun INSTAN-CON (frame wkm)
-    'UNIMPLEMENTED
+    (let ((ungapped-frame (UNIQUE-GAPS frame))
+        (new-con-atm (NEWATM 'CON)))
+        (set new-con-atm ungapped-frame)
+        (setf wkm (cons new-con-atm wkm))
+        (setf WKMEM wkm)
+        wkm    
+    )
 )
 
 ; -----------------------------------------------------------------------------

@@ -146,6 +146,17 @@
     )
 )
 
+(defun srch-int (atmlst myatm dir pred)
+    ;prepare list cleverly to get around most problems
+)
+
+(defun srch-order (atmlst myatm done)
+    (cond
+        ((equal (cat atmlst) myatm) (reverse (append atmlst) done))
+        (t (srch-order (append (cdr atmlst) (list (car atmlst))) myatm done))  
+    )
+)
+
 ; ****** END MY UTILITY FUNCTIONS ******
 
 ; ****** BEGIN PROBLEM SKELETONS ******
@@ -267,7 +278,9 @@
 ; SIDE-EFFECT: binds gap to found, and adds found to the global variable USEDMEM
 
 (defun BIND (gap found)
-    'UNIMPLEMENTED
+    (setf USEDMEM (cons found USEDMEM))
+    (set gap found)
+    found
 )
 
 ; -----------------------------------------------------------------------------

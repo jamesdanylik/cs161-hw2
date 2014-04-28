@@ -139,6 +139,13 @@
     )
 )
 
+(defun spawn-int (partial-dems mycon done)
+    (cond
+        ((eq (length partial-dems) 0) done)
+        (t (spawn-int (cdr partial-dems) mycon (cons (append (cons (caar partial-dems) (list mycon)) (cdr (car partial-dems))) done)))
+    )
+)
+
 ; ****** END MY UTILITY FUNCTIONS ******
 
 ; ****** BEGIN PROBLEM SKELETONS ******
@@ -331,7 +338,10 @@
 ;              DEMEM.
 
 (defun SPAWN (partial-dems mycon)
-    'UNIMPLEMENTED
+    (let ((completed-dems (spawn-int partial-dems mycon NIL)))
+        (setf DEMEM (append completed-dems DEMEM))
+        completed-dems
+    )
 )
 
 ; -----------------------------------------------------------------------------
